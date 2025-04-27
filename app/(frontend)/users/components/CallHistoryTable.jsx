@@ -1,6 +1,5 @@
 "use client"
 
-import * as React from "react";
 import {
     DropdownMenu,
     DropdownMenuCheckboxItem,
@@ -16,11 +15,12 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import { ArrowUpDown, ChevronDown } from "lucide-react";
+import { ArrowUpDown, ChevronDown, RefreshCwIcon } from "lucide-react";
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
+import { useEffect, useState } from "react";
 
-export function CallHistoryTable({ userId, callHistory }) {
+export function CallHistoryTable({ id }) {
     const columns = [
         {
             accessorKey: "interactionId",
@@ -46,7 +46,7 @@ export function CallHistoryTable({ userId, callHistory }) {
             header: "Direction",
         },
         {
-            accessorKey: "date",
+            accessorKey: "callAt",
             header: ({ column }) => {
                 return (
                     <Button
@@ -60,7 +60,7 @@ export function CallHistoryTable({ userId, callHistory }) {
                 )
             },
             cell: ({ row }) => {
-                const date = new Date(row.getValue("date"))
+                const date = new Date(row.getValue("callAt"))
                 return date.toLocaleString('en-US', {
                     year: 'numeric',
                     month: 'short',
@@ -109,14 +109,17 @@ export function CallHistoryTable({ userId, callHistory }) {
         },
     ];
 
-    const [sorting, setSorting] = React.useState([]);
-    const [columnFilters, setColumnFilters] = React.useState([]);
+    const [sorting, setSorting] = useState([]);
+    const [columnFilters, setColumnFilters] = useState([]);
     const [columnVisibility, setColumnVisibility] =
-        React.useState({})
-    const [rowSelection, setRowSelection] = React.useState({})
-
+        useState({})
+    const [rowSelection, setRowSelection] = useState({})
+    const [data, setData] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [refresh, setRefresh] = useState(true);
+    const [error, setError] = useState(null);
     const table = useReactTable({
-        data: callHistory,
+        data: data,
         columns,
         onSortingChange: setSorting,
         onColumnFiltersChange: setColumnFilters,
@@ -134,18 +137,44 @@ export function CallHistoryTable({ userId, callHistory }) {
         },
     })
 
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const fetchId = await id
+                setLoading(true);
+                const response = await fetch(`/api/users/${fetchId}/calls`);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch users data');
+                }
+                const data = await response.json();
+                setData(data);
+                setLoading(false);
+            } catch (error) {
+                console.error("Error fetching users:", error);
+                setError(error.message);
+                setLoading(false);
+            }
+        }
+        fetchData();
+    }, [id, refresh])
+
     return (
 
         <div className="flex flex-col gap-2">
             <div className="flex items-center py-2">
-                <Input
-                    placeholder="Filter interaction id..."
-                    value={(table.getColumn("interactionId")?.getFilterValue()) ?? ""}
-                    onChange={(event) =>
-                        table.getColumn("interactionId")?.setFilterValue(event.target.value)
-                    }
-                    className="max-w-sm mx-1"
-                />
+                <div className="flex items-center gap-2">
+                    <Input
+                        placeholder="Filter interactionId..."
+                        value={(table.getColumn("interactionId")?.getFilterValue()) ?? ""}
+                        onChange={(event) =>
+                            table.getColumn("interactionId")?.setFilterValue(event.target.value)
+                        }
+                        className="w-xl max-w-xs"
+                    />
+                    <Button onClick={() => setRefresh(!refresh)} className={"bg-transparent cursor-pointer hover:bg-gray-100 border"}>
+                        <RefreshCwIcon className='text-black' />
+                    </Button>
+                </div>
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                         <Button variant="outline" className="ml-auto">
@@ -185,9 +214,9 @@ export function CallHistoryTable({ userId, callHistory }) {
                                     return (
                                         <TableHead
                                             key={header.id}
-                                            className={`bg - gray - 200 text - grey - 900 ${isFirst ? "rounded-tl-sm" : ""
+                                            className={`bg-gray-200 text-gray-900 ${isFirst ? "rounded-tl-sm" : ""
                                                 } ${isLast ? "rounded-tr-sm" : ""
-                                                } `}
+                                                }`}
                                         >
                                             {header.isPlaceholder
                                                 ? null
@@ -224,15 +253,18 @@ export function CallHistoryTable({ userId, callHistory }) {
                                     colSpan={columns.length}
                                     className="h-24 text-center"
                                 >
-                                    No calls recorded.
+                                    {loading ? "Loading..."
+                                        : error ? `Error : ${error}` : "No calls recorded."
+                                    }
                                 </TableCell>
+
                             </TableRow>
                         )}
                     </TableBody>
                 </Table>
             </div>
 
-            <div className="flex items-center justify-end space-x-2 py-2">
+            {/* <div className="flex items-center justify-end space-x-2 py-2">
                 <div className="flex-1 text-sm text-muted-foreground">
                     {table.getFilteredSelectedRowModel().rows.length} of{" "}
                     {table.getFilteredRowModel().rows.length} row(s) selected.
@@ -255,7 +287,7 @@ export function CallHistoryTable({ userId, callHistory }) {
                         Next
                     </Button>
                 </div>
-            </div>
+            </div> */}
         </div>
     )
 }

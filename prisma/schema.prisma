@@ -19,7 +19,7 @@ model User {
   name   String
   email  String @unique
   phone  String @unique
-  status String
+  status String @default("active")
 
   password  String
   createdAt DateTime @default(now())
@@ -36,7 +36,4 @@ model Call {
   duration      Int
   callAt        DateTime @default(now())
   status        String
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 }
