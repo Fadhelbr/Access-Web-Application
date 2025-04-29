@@ -6,6 +6,8 @@ window.Framework = {
         clientIds: {
             'mypurecloud.jp': '626c8761-076d-4236-be86-188d60059b13',
         },
+        // redirectUriBase: "https://apps.mypurecloud.jp/crm/index.html?crm=framework-local-secure",
+        // redirectUriBase: "http://localhost:3000/",
         settings: {
             embedWebRTCByDefault: true,
             hideWebRTCPopUpOption: false,
@@ -23,6 +25,9 @@ window.Framework = {
     },
 
     initialSetup: function () {
+        console.log("Framework initial setup complete");
+        window.parent.postMessage(JSON.stringify({ type: "frameworkReady" }), "*");
+
         window.PureCloud.subscribe([
             {
                 type: 'Interaction',

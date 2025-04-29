@@ -1,6 +1,6 @@
 "use client"
 
-import * as React from "react"
+import React, { useEffect, useState } from 'react'
 import {
     flexRender,
     getCoreRowModel,
@@ -9,8 +9,7 @@ import {
     getSortedRowModel,
     useReactTable,
 } from "@tanstack/react-table"
-import { ArrowUpDown, ChevronDown, MoreHorizontal, Phone } from "lucide-react"
-
+import { ArrowUpDown, ChevronDown, MoreHorizontal, Phone, RefreshCwIcon, UserPlus } from "lucide-react"
 
 import {
     DropdownMenu,
@@ -33,6 +32,9 @@ import {
     TableRow,
 } from "@/components/ui/table"
 import Link from "next/link"
+import { useSoftPhone } from '../../providers/SoftPhoneProvider'
+import CreateUser from './CreateUser'
+import useClickToDial from '../../providers/useClickToDial'
 
 export const columns = [
     {
@@ -58,24 +60,44 @@ export const columns = [
     },
     {
         accessorKey: "phone",
-        header: ({ column }) => {
-            return (
-                <Button
-                    variant="ghost"
-                    onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-                    className="w-full text-center px-10 cursor-pointer"
-                >
+        header: ({ column }) => (
+            <Button
+                variant="ghost"
+                onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+                className="w-full text-center px-10 cursor-pointer"
+            >
+                <span className="flex items-center justify-center gap-2">
                     Phone
-                    <ArrowUpDown />
-                </Button>
-            )
+                    <ArrowUpDown className="h-4 w-4" />
+                </span>
+            </Button>
+        ),
+        cell: ({ row }) => {
+            const phone = row.getValue("phone");
+            const userId = row.original.id;
+            const { setIsOpen } = useSoftPhone();
+            const { clickToDial } = useClickToDial();
+
+            const handlePhoneClick = (e) => {
+                // e.preventDefault();
+                setIsOpen(true)
+                clickToDial(phone);
+
+            }
+
+            return (
+                <Link
+                    href={`/users/${userId}`}
+                    onClick={handlePhoneClick}
+                    className="w-fit hover:underline flex items-center gap-2 px-2 py-1 rounded-md hover:bg-slate-100"
+                >
+                    <Phone size={16} className="text-slate-500 flex-shrink-0" />
+                    <span className="text-slate-700">
+                        {phone || "N/A"}
+                    </span>
+                </Link>
+            );
         },
-        cell: ({ row }) =>
-            <Link href={`/users/${row.getValue("id")}`} className="w-fit hover:underline flex items-center gap-2">
-                <Phone size={16} className="text-slate-500" />
-                <div className="lowercase">{row.getValue("id")}</div>
-            </Link>
-        ,
     },
     {
         accessorKey: "status",
@@ -150,14 +172,16 @@ export const columns = [
 ]
 
 export function UserTable() {
-    const [isClient, setIsClient] = React.useState(false);
-    const [sorting, setSorting] = React.useState([]);
-    const [data, setData] = React.useState([]);
-    const [columnFilters, setColumnFilters] = React.useState([]);
+    const [isClient, setIsClient] = useState(false);
+    const [sorting, setSorting] = useState([]);
+    const [data, setData] = useState([]);
+    const [columnFilters, setColumnFilters] = useState([]);
     const [columnVisibility, setColumnVisibility] =
-        React.useState({})
-    const [rowSelection, setRowSelection] = React.useState({})
-
+        useState({})
+    const [rowSelection, setRowSelection] = useState({})
+    const [loading, setLoading] = useState(true);
+    const [refresh, setRefresh] = useState(true);
+    const [error, setError] = useState(null);
     const table = useReactTable({
         data,
         columns,
@@ -178,19 +202,26 @@ export function UserTable() {
     })
 
 
-    React.useEffect(() => {
+    useEffect(() => {
         const fetchUsers = async () => {
             try {
+                setLoading(true);
                 const response = await fetch("/api/users");
+                if (!response.ok) {
+                    throw new Error('Failed to fetch users');
+                }
                 const users = await response.json();
                 setData(users);
+                setLoading(false);
             } catch (error) {
                 console.error("Error fetching users:", error);
+                setError(error.message);
+                setLoading(false);
             }
         };
         setIsClient(true);
         fetchUsers();
-    }, []);
+    }, [refresh]);
 
     if (!isClient) {
         return null;
@@ -198,42 +229,53 @@ export function UserTable() {
 
     return (
         <div className="w-full">
-            <div className="flex items-center py-4">
-                <Input
-                    placeholder="Filter emails..."
-                    value={(table.getColumn("email")?.getFilterValue()) ?? ""}
-                    onChange={(event) =>
-                        table.getColumn("email")?.setFilterValue(event.target.value)
-                    }
-                    className="max-w-sm"
-                />
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button variant="outline" className="ml-auto">
-                            Columns <ChevronDown />
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                        {table
-                            .getAllColumns()
-                            .filter((column) => column.getCanHide())
-                            .map((column) => {
-                                return (
-                                    <DropdownMenuCheckboxItem
-                                        key={column.id}
-                                        className="capitalize"
-                                        checked={column.getIsVisible()}
-                                        onCheckedChange={(value) =>
-                                            column.toggleVisibility(!!value)
-                                        }
-                                    >
-                                        {column.id}
-                                    </DropdownMenuCheckboxItem>
-                                )
-                            })}
-                    </DropdownMenuContent>
-                </DropdownMenu>
+            <div className="flex justify-between items-center py-4">
+                <div className="flex items-center gap-2">
+                    <Input
+                        placeholder="Filter emails..."
+                        value={(table.getColumn("email")?.getFilterValue()) ?? ""}
+                        onChange={(event) =>
+                            table.getColumn("email")?.setFilterValue(event.target.value)
+                        }
+                        className="w-xl max-w-xs"
+                    />
+                    <Button onClick={() => setRefresh(!refresh)} className={"bg-transparent cursor-pointer hover:bg-gray-100 border"}>
+                        <RefreshCwIcon className='text-black' />
+                    </Button>
+                </div>
+
+                <div className="flex gap-2">
+                    <CreateUser />
+
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="outline" className="ml-auto">
+                                Columns <ChevronDown />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            {table
+                                .getAllColumns()
+                                .filter((column) => column.getCanHide())
+                                .map((column) => {
+                                    return (
+                                        <DropdownMenuCheckboxItem
+                                            key={column.id}
+                                            className="capitalize"
+                                            checked={column.getIsVisible()}
+                                            onCheckedChange={(value) =>
+                                                column.toggleVisibility(!!value)
+                                            }
+                                        >
+                                            {column.id}
+                                        </DropdownMenuCheckboxItem>
+                                    )
+                                })}
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                </div>
             </div>
+
             <div className="rounded-md border">
                 <Table>
                     <TableHeader>
@@ -283,14 +325,17 @@ export function UserTable() {
                                     colSpan={columns.length}
                                     className="h-24 text-center"
                                 >
-                                    No results.
+                                    {loading ? "Loading..."
+                                        : error ? `Error : ${error}` : "No results."
+                                    }
                                 </TableCell>
+
                             </TableRow>
                         )}
                     </TableBody>
                 </Table>
             </div>
-            <div className="flex items-center justify-end space-x-2 py-4">
+            {/*     <div className="flex items-center justify-end space-x-2 py-4">
                 <div className="flex-1 text-sm text-muted-foreground">
                     {table.getFilteredSelectedRowModel().rows.length} of{" "}
                     {table.getFilteredRowModel().rows.length} row(s) selected.
@@ -313,7 +358,7 @@ export function UserTable() {
                         Next
                     </Button>
                 </div>
-            </div>
+            </div> */}
         </div>
     )
 }

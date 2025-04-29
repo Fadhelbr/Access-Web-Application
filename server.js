@@ -5,6 +5,8 @@ const { parse } = require('url');
 const next = require('next');
 const fs = require('fs');
 const express = require('express');
+var cors = require('cors');  // Add this line
+
 
 const dev = process.env.NODE_ENV !== 'production';
 const app = next({ dev });
