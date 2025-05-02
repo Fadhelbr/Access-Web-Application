@@ -13,7 +13,6 @@ export const SoftPhoneProvider = ({ children }) => {
             setIsOpen(storedIsOpen === 'true');
         }
     }, []);
-
     useEffect(() => {
         localStorage.setItem('softphone-isOpen', isOpen.toString());
     }, [isOpen]);

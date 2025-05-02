@@ -64,7 +64,7 @@ export async function PUT(request, { params }) {
             status: 500,
             headers: {
                 "Content-Type": "application/json",
-            },  
+            },
         });
     }
 }

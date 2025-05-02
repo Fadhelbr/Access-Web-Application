@@ -1,12 +1,13 @@
 'use client'
 import React, { useEffect, useState } from 'react'
 import { CallHistoryTable } from './CallHistoryTable';
-import { EditIcon, Phone } from 'lucide-react';
+import { Phone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useSoftPhone } from '../../providers/SoftPhoneProvider';
 import Link from 'next/link';
-import useClickToDial from '../../providers/useClickToDial';
+import sendToSoftPhone from '../../providers/sendToSoftPhone';
 import { UpdateUserDialog } from './EditUser';
+import { toast } from "sonner";
 
 const UserDetails = ({ id }) => {
     const [userData, setUserData] = useState(null);
@@ -14,7 +15,7 @@ const UserDetails = ({ id }) => {
     const [error, setError] = useState(null);
     const { setIsOpen } = useSoftPhone();
     const [refresh, setRefresh] = useState(true);
-    const { clickToDial } = useClickToDial();
+    const { clickToDial } = sendToSoftPhone();
 
 
 
@@ -58,6 +59,9 @@ const UserDetails = ({ id }) => {
 
     const handlePhoneClick = (e) => {
         if (userData.phone) {
+            toast.success("Soft phone", {
+                description: `Calling ${userData.name} ...`,
+            });
             setIsOpen(true)
             clickToDial(userData.phone);
         }

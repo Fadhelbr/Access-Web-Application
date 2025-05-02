@@ -34,7 +34,8 @@ import {
 import Link from "next/link"
 import { useSoftPhone } from '../../providers/SoftPhoneProvider'
 import CreateUser from './CreateUser'
-import useClickToDial from '../../providers/useClickToDial'
+import sendToSoftPhone from '../../providers/sendToSoftPhone'
+import { toast } from "sonner";
 
 export const columns = [
     {
@@ -76,10 +77,13 @@ export const columns = [
             const phone = row.getValue("phone");
             const userId = row.original.id;
             const { setIsOpen } = useSoftPhone();
-            const { clickToDial } = useClickToDial();
+            const { clickToDial } = sendToSoftPhone();
 
             const handlePhoneClick = (e) => {
                 // e.preventDefault();
+                toast.success("Soft phone", {
+                    description: `Calling ${row.getValue("name")} ...`,
+                });
                 setIsOpen(true)
                 clickToDial(phone);
 
@@ -114,6 +118,31 @@ export const columns = [
                     {status}
                 </span>
             )
+        },
+    },
+    {
+        accessorKey: "lastCallAt",
+        header: ({ column }) => {
+            return (
+                <Button
+                    variant="ghost"
+                    onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+                    className="w-full text-center px-10 cursor-pointer"
+                >
+                    Last call at
+                    <ArrowUpDown />
+                </Button>
+            )
+        },
+        cell: ({ row }) => {
+            const date = new Date(row.getValue("lastCallAt"))
+            return row.getValue("lastCallAt") ? date.toLocaleString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            }) : "N/A"
         },
     },
     {
@@ -201,6 +230,7 @@ export function UserTable() {
         },
     })
 
+    console.log(data[0]);
 
     useEffect(() => {
         const fetchUsers = async () => {
