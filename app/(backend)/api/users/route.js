@@ -5,8 +5,34 @@ const prisma = new PrismaClient();
 
 export async function GET(request) {
     try {
-        const users = await prisma.user.findMany();
-        return new Response(JSON.stringify(users), {
+        const users = await prisma.user.findMany({
+            select: {
+                id: true,
+                name: true,
+                email: true,
+                phone: true,
+                status: true,
+                createdAt: true,
+                updatedAt: true,
+                Call: {
+                    select: {
+                        callAt: true,
+                    },
+                    orderBy: {
+                        callAt: 'desc'
+                    },
+                    take: 1
+                }
+            }
+        });
+
+        const response = users.map((user) => ({
+            ...user,
+            lastCallAt: user.Call[0]?.callAt,
+            Call: undefined
+        }));
+
+        return new Response(JSON.stringify(response), {
             status: 200,
             headers: {
                 "Content-Type": "application/json",

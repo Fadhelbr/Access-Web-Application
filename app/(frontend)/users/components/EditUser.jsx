@@ -175,6 +175,17 @@ const UpdateUserForm = ({ id, refresh, setRefresh, className, setOpen }) => {
         }
     }
 
+    const handleReset = () => {
+        if (userData) {
+            form.reset({
+                name: userData.name,
+                email: userData.email,
+                phone: userData.phone,
+                password: "", // Keep password empty by default
+                status: userData.status,
+            });
+        }
+    }
 
     return (
         <Form {...form}>
@@ -252,7 +263,7 @@ const UpdateUserForm = ({ id, refresh, setRefresh, className, setOpen }) => {
 
                                 <FormControl>
                                     <Input disabled={!editPassword} type={"password"}
-                                        placeholder={editPassword ? "Enter new password" : "check to edit"} {...field} />
+                                        placeholder={editPassword ? "Enter new password" : "Check to edit"} {...field} />
 
                                 </FormControl>
                                 <FormMessage className={"text-xs"} />
@@ -262,11 +273,15 @@ const UpdateUserForm = ({ id, refresh, setRefresh, className, setOpen }) => {
 
                 </div>
 
-                <Button type="submit" className={"cursor-pointer hover:bg-gray-500"}>
-                    Submit
-                    <span className="text-xs font-extralight">(last update at: {dateFormat(userData?.updatedAt)})</span>
-
-                </Button>
+                <div className="flex justify-between">
+                    <Button type="button" onClick={handleReset} className={"bg-transparent cursor-pointer hover:bg-gray-100 border text-black"}>
+                        Reset
+                    </Button>
+                    <Button type="submit" className={"cursor-pointer hover:bg-gray-500"}>
+                        Submit
+                        <span className="text-xs font-extralight">(last update at: {dateFormat(userData?.updatedAt)})</span>
+                    </Button>
+                </div>
 
             </form>
         </Form>

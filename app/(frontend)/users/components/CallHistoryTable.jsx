@@ -162,7 +162,7 @@ export function CallHistoryTable({ id }) {
 
         <div className="flex flex-col gap-2">
             <div className="flex items-center py-2">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 pl-1">
                     <Input
                         placeholder="Filter interactionId..."
                         value={(table.getColumn("interactionId")?.getFilterValue()) ?? ""}

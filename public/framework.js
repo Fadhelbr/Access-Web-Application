@@ -1,3 +1,4 @@
+//  listener genesys
 var contactSearchCallback;
 
 window.Framework = {
@@ -7,7 +8,7 @@ window.Framework = {
             'mypurecloud.jp': '626c8761-076d-4236-be86-188d60059b13',
         },
         // redirectUriBase: "https://apps.mypurecloud.jp/crm/index.html?crm=framework-local-secure",
-        // redirectUriBase: "http://localhost:3000/",
+        redirectUriBase: "http://localhost:3000",
         settings: {
             embedWebRTCByDefault: true,
             hideWebRTCPopUpOption: false,

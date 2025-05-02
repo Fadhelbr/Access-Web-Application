@@ -24,7 +24,7 @@ import { useMediaQuery } from "@uidotdev/usehooks"
 import { UserPlus } from "lucide-react"
 
 import { zodResolver } from "@hookform/resolvers/zod"
-import { set, useForm } from "react-hook-form"
+import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { toast } from "sonner";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
@@ -98,7 +98,7 @@ function CreateUserForm({ className, setOpen }) {
             email: "",
             phone: "",
             password: "",
-            status: "",
+            status: "active",
         },
     })
 
@@ -118,7 +118,7 @@ function CreateUserForm({ className, setOpen }) {
                 throw new Error(statusText)
             }
             const result = await response.json()
-            toast.success("Form submitted", {
+            toast.success("Soft phone", {
                 description: `User ${result.name} created successfully`,
             });
             console.log(result); // For debugging
