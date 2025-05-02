@@ -2,12 +2,14 @@
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef } from 'react';
 import { toast } from 'sonner';
+import { useSoftPhone } from './SoftPhoneProvider';
 
 
 const sendToSoftPhone = () => {
     const softPhoneRef = useRef(null);
     const currentInteractionId = useRef(null);
     const router = useRouter();
+    const { setIsOpen } = useSoftPhone();
 
     const findSoftPhoneIframe = () => {
         return document.getElementById('softphone');
@@ -143,25 +145,24 @@ const sendToSoftPhone = () => {
         }
     }
 
-    const getUserByInteractionId = async (interactionId) => {
-        const response = await fetch(`/api/users/interaction/${interactionId}/users`);
+    const openUserDetail = async (interactionId) => {
+        try {
+            const res = await fetch(`/api/users/interaction/${interactionId}/users`);
+            if (!res.ok) {
+                router.push("/users");
+                toast.error("Please create the user immediately !!!", {
+                    description: "user not created yet please create manually",
+                    duration: 10000
+                });
+            }
 
-        if (!response.ok) {
-            toast.error("genesys message", {
-                description: `User not found please create user immediately !!!`,
-                duration: 10000
-            });
+            const data = await res.json();
+            if (!data) return;
+            console.log("User ID:", data.userId);
+            router.push(`/users/${data.id}`);
+        } catch (err) {
+            console.error("Error fetching user data:", err);
         }
-
-        const data = await response.json();
-        if (!data) {
-            toast.error("genesys message", {
-                description: `No user found please create user immediately !!!`,
-                duration: 10000
-            });
-        }
-
-        router.push(`/users/${data.id}`);
     }
 
     // exmple.js
@@ -170,33 +171,36 @@ const sendToSoftPhone = () => {
             try {
                 const message = JSON.parse(event.data);
                 if (message.type === "screenPop") {
-                    console.log('Received screenPop:', event.data);
                     // open the Softphone and open detail/create user
-                    toast.success("genesys message", {
-                        description: `Received screenPop:: ${event.data}`,
+                    toast.success("Genesys Softphone", {
+                        description: `Received screenPop: ${event.data}`,
                     });
-                    getUserByInteractionId(event.data)
+                    setIsOpen(true);
+                    openUserDetail(event.data);
                 }
                 else if (message.type === 'processCallLog') { // outbound
                     console.log('Received call log:', event.data);
                     // sending POST request to backend API then open detail user
-                    toast.success("genesys message", {
+                    toast.success("Genesys Softphone", {
                         description: `Received call log: ${event.data}`,
                     });
+                    setIsOpen(true);
                 }
                 else if (message.type === 'openCallLog') {
                     console.log('Received open call log:', event.data);
                     // open detail user because the data already stored by the previous process event
-                    toast.success("genesys message", {
+                    toast.success("Genesys Softphone", {
                         description: `Received open call log: ${event.data}`,
                     });
+                    setIsOpen(true);
                 }
                 else if (message.type == "interactionSubscription") { // inbound
                     console.log('Received interactionSubscription:', event.data);
                     // open detail user because the data already stored by the previous process event
-                    toast.success("genesys message", {
+                    toast.success("Genesys Softphone", {
                         description: `Received interactionSubscription: ${event.data}`,
                     });
+                    setIsOpen(true);
                     currentInteractionId.current = event.data
                 }
             } catch (error) {

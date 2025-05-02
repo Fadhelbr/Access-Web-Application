@@ -38,7 +38,6 @@ const SoftPhone = () => {
                 <div className="flex gap-2">
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                            {/* <Button variant="outline" className="flex items-center gap-1"> */}
                             <Button variant="outline" className="border-[1px] border-black p-0 py-1 m-0 h-auto w-auto cursor-pointer bg-white hover:text-white rounded-md hover:bg-black">
                                 Set views <ChevronDown className="h-4 w-4" />
                             </Button>
