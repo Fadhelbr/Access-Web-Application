@@ -51,7 +51,7 @@ const SetNotification = () => {
             <DropdownMenuTrigger asChild>
                 <Button
                     variant="outline"
-                    className="p-0 m-0 py-1 h-auto w-auto text-black rounded-md cursor-pointer"
+                    className="p-0 m-0 py-1 h-auto w-auto text-black rounded-md cursor-pointer border-2 border-black"
                 >
                     {audioOptions.map(option => {
                         audioConfig[option.value] === true ? <BellRing className="m-0" /> : <BellOff className="m-0" />
