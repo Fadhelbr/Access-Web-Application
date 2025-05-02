@@ -1,9 +1,13 @@
 'use client';
+import { useRouter } from 'next/navigation';
 import { useEffect, useRef } from 'react';
+import { toast } from 'sonner';
+
 
 const sendToSoftPhone = () => {
     const softPhoneRef = useRef(null);
     const currentInteractionId = useRef(null);
+    const router = useRouter();
 
     const findSoftPhoneIframe = () => {
         return document.getElementById('softphone');
@@ -139,6 +143,27 @@ const sendToSoftPhone = () => {
         }
     }
 
+    const getUserByInteractionId = async (interactionId) => {
+        const response = await fetch(`/api/users/interaction/${interactionId}/users`);
+
+        if (!response.ok) {
+            toast.error("genesys message", {
+                description: `User not found please create user immediately !!!`,
+                duration: 10000
+            });
+        }
+
+        const data = await response.json();
+        if (!data) {
+            toast.error("genesys message", {
+                description: `No user found please create user immediately !!!`,
+                duration: 10000
+            });
+        }
+
+        router.push(`/users/${data.id}`);
+    }
+
     // exmple.js
     useEffect(() => {
         const handleMessage = (event) => {
@@ -147,18 +172,31 @@ const sendToSoftPhone = () => {
                 if (message.type === "screenPop") {
                     console.log('Received screenPop:', event.data);
                     // open the Softphone and open detail/create user
+                    toast.success("genesys message", {
+                        description: `Received screenPop:: ${event.data}`,
+                    });
+                    getUserByInteractionId(event.data)
                 }
                 else if (message.type === 'processCallLog') { // outbound
                     console.log('Received call log:', event.data);
                     // sending POST request to backend API then open detail user
+                    toast.success("genesys message", {
+                        description: `Received call log: ${event.data}`,
+                    });
                 }
                 else if (message.type === 'openCallLog') {
                     console.log('Received open call log:', event.data);
                     // open detail user because the data already stored by the previous process event
+                    toast.success("genesys message", {
+                        description: `Received open call log: ${event.data}`,
+                    });
                 }
                 else if (message.type == "interactionSubscription") { // inbound
                     console.log('Received interactionSubscription:', event.data);
                     // open detail user because the data already stored by the previous process event
+                    toast.success("genesys message", {
+                        description: `Received interactionSubscription: ${event.data}`,
+                    });
                     currentInteractionId.current = event.data
                 }
             } catch (error) {

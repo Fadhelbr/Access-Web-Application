@@ -20,42 +20,34 @@ const SetStatus = () => {
         {
             name: 'Available',
             value: 'AVAILABLE',
-            bgColor: 'green',
         },
         {
             name: 'Busy',
             value: 'BUSY',
-            bgColor: 'red',
         },
         {
             name: 'Away',
             value: 'AWAY',
-            bgColor: 'orange',
         },
         {
             name: 'Break',
             value: 'BREAK',
-            bgColor: 'yellow',
         },
         {
             name: 'Meal',
             value: 'MEAL',
-            bgColor: 'orange',
         },
         {
             name: 'Meeting',
             value: 'MEETING',
-            bgColor: 'red',
         },
         {
             name: 'Training',
             value: 'TRAINING',
-            bgColor: 'orange',
         },
         {
             name: 'On Queue',
             value: 'ON_QUEUE',
-            bgColor: 'blue',
         },
     ];
 
